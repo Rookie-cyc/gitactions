@@ -17,13 +17,13 @@ def plot_predictions(train_data, train_labels,  test_data, test_labels,  predict
   # Plot the predictions in red (predictions were made on the test data)
   plt.scatter(test_data, predictions, c="r", label="Predictions")
   # Show the legend
-  plt.legend(shadow='True')
+  plt.legend(shadow=True)
   # Set grids
   plt.grid(which='major', c='#cccccc', linestyle='--', alpha=0.5)
   # Some text
-  plt.title('Model Results', family='Arial', fontsize=14)
-  plt.xlabel('X axis values', family='Arial', fontsize=11)
-  plt.ylabel('Y axis values', family='Arial', fontsize=11)
+  plt.title('Model Results', family='DejaVu Sans', fontsize=14)
+  plt.xlabel('X axis values', family='DejaVu Sans', fontsize=11)
+  plt.ylabel('Y axis values', family='DejaVu Sans', fontsize=11)
   # Show
   plt.savefig('model_results.png', dpi=120)
 
@@ -63,34 +63,38 @@ y_test = y[40:]
 
 
 # Take a single example of X
-input_shape = X[0].shape 
+# Reshape inputs to 2D
+X_train = X_train.reshape(-1, 1)
+X_test = X_test.reshape(-1, 1)
 
-# Take a single example of y
-output_shape = y[0].shape
-
-
-# Set random seed
-tf.random.set_seed(42)
+# Input shape
+input_shape = X_train[0].shape
 
 # Create a model using the Sequential API
+# Create a model using the Sequential API
 model = tf.keras.Sequential([
-    tf.keras.layers.Dense(1), 
-    tf.keras.layers.Dense(1)
-    ])
+    tf.keras.layers.Dense(1, input_shape=input_shape)
+])
 
-# Compile the model
-model.compile(loss = tf.keras.losses.mae,
-              optimizer = tf.keras.optimizers.SGD(),
-              metrics = ['mae'])
+# Compile and train
+model.compile(loss='mae',
+              optimizer=tf.keras.optimizers.SGD(),
+              metrics=['mae'])
 
-# Fit the model
 model.fit(X_train, y_train, epochs=100)
-
 
 # Make and plot predictions for model_1
 y_preds = model.predict(X_test)
 plot_predictions(train_data=X_train, train_labels=y_train,  test_data=X_test, test_labels=y_test,  predictions=y_preds)
 
+# Fix MAE and MSE calculations
+from tensorflow.keras import backend as K
+
+def mae(y_test, y_pred):
+    return K.mean(K.abs(y_test - y_pred))
+
+def mse(y_test, y_pred):
+    return K.mean(K.square(y_test - y_pred))
 
 # Calculate model_1 metrics
 mae_1 = np.round(float(mae(y_test, y_preds.squeeze()).numpy()), 2)
