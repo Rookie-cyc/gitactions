@@ -1,0 +1,24 @@
+name: model-training
+on: [push]
+jobs: 
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - uses: iterative/setup-cml@v1
+      - name: Train model
+        env:
+          REPO_TOKEN: ${{ secrets.Joy123_T }}
+        run: |
+          pip install -r requirements.txt
+          python model.py
+
+          cat metrics.txt >> report.md
+          echo "![](./model_results.png)" >> report.md
+
+          if [ -f "model_results.png" ]; then
+              cml comment create report.md || echo "cml comment failed"
+          else
+              echo "model_results.png not found"
+          fi
